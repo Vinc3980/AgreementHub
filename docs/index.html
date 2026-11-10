@@ -1,18 +1,933 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AgreementHub — Pages test</title>
-    <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; max-width: 720px; margin: 3rem auto; padding: 0 1rem; line-height: 1.5; color: #16181d; }
-      code { background: #f3efe6; padding: 0.1rem 0.3rem; border-radius: 3px; }
-    </style>
-  </head>
-  <body>
-    <h1>AgreementHub — GitHub Pages test</h1>
-    <p>This is a static test page published via GitHub Pages. It confirms the repository is deployed to <code>github.io</code>.</p>
-    <p><strong>Note:</strong> AgreementHub is a full-stack app (Next.js web + API + PostgreSQL, auth, PDF generation). The full application cannot run on GitHub Pages (static hosting only). Use a proper host for the web/API/database for a functional deployment.</p>
-    <p>Repository: <a href="https://github.com/Vinc3980/AgreementHub">github.com/Vinc3980/AgreementHub</a></p>
-  </body>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AgreementHub — draft, sign, and verify agreements</title>
+<meta name="description" content="AgreementHub is a secure digital agreement platform: data-driven templates, review and approvals, electronic signatures, a hash-chained audit trail, and public integrity verification." />
+<meta name="theme-color" content="#F3EFE6" />
+<meta property="og:title" content="AgreementHub — The Instrument" />
+<meta property="og:description" content="Draft, sign, and independently verify agreements. Every finalised document is sealed with a content hash and a tamper-evident audit trail." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="assets/screens/desk.png" />
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f3efe6;
+    --sheet: #fcfbf7;
+    --vellum: #ede8dc;
+    --ink: #16181d;
+    --ink-2: #4a4d55;
+    --ink-3: #62656d;
+    --rule: #d9d3c4;
+    --rule-strong: #b9b2a0;
+    --navy: #1c2b4a;
+    --navy-hover: #14203a;
+    --seal: #0f5f53;
+    --seal-tint: #e3efea;
+    --seal-rule: #a9c8bf;
+    --attention: #7a4e00;
+    --attention-tint: #f6e7c4;
+    --attention-rule: #dfc48b;
+    --danger: #a3321e;
+    --danger-tint: #f5ddd6;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    --radius: 6px;
+    --panel: 8px;
+    --ease: cubic-bezier(0.2, 0.65, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; }
+  a { color: inherit; }
+  ::selection { background: var(--attention-tint); color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+
+  .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .skip {
+    position: absolute; left: -9999px; top: 0; z-index: 100;
+    background: var(--navy); color: var(--sheet); padding: 10px 16px;
+  }
+  .skip:focus { left: 12px; top: 12px; }
+
+  .caps {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .muted { color: var(--ink-2); }
+  .subtle { color: var(--ink-3); }
+
+  /* ------------------------------- header ------------------------------ */
+  .site-header {
+    position: sticky; top: 0; z-index: 40;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+  }
+  .site-header .wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; height: 68px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+  .brand img { width: 30px; height: 30px; }
+  .brand .name { display: flex; flex-direction: column; line-height: 1; }
+  .brand .name strong { font-family: var(--serif); font-weight: 500; font-size: 1.08rem; letter-spacing: -0.01em; }
+  .brand .name span { margin-top: 5px; font-size: 0.6rem; letter-spacing: 0.19em; text-transform: uppercase; color: var(--ink-3); }
+  .nav { display: flex; align-items: center; gap: 4px; }
+  .nav a {
+    display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px;
+    color: var(--ink-2); text-decoration: none; font-size: 0.9rem;
+    border-bottom: 2px solid transparent;
+  }
+  .nav a:hover { color: var(--ink); border-bottom-color: var(--rule-strong); }
+  .nav .github {
+    margin-left: 8px; min-height: 40px; padding: 0 16px;
+    border: 1px solid var(--navy); background: var(--navy); color: var(--sheet);
+    font-weight: 500;
+  }
+  .nav .github:hover { background: var(--navy-hover); border-bottom-color: var(--navy-hover); }
+
+  /* -------------------------------- hero ------------------------------- */
+  .hero { padding: 78px 0 64px; }
+  .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 21rem; gap: 64px; align-items: center; }
+  .hero .eyebrow { color: var(--seal); }
+  .hero h1 {
+    margin: 18px 0 0; max-width: 16ch;
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(2.6rem, 5.2vw, 4.15rem);
+    line-height: 1.03; letter-spacing: -0.015em;
+  }
+  .hero .lede { margin: 24px 0 0; max-width: 58ch; font-size: 1.075rem; color: var(--ink-2); }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    min-height: 46px; padding: 0 22px; border-radius: var(--radius);
+    font-family: var(--sans); font-size: 0.94rem; font-weight: 500;
+    text-decoration: none; border: 1px solid var(--navy); cursor: pointer;
+    transition: background 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease);
+  }
+  .btn-primary { background: var(--navy); color: var(--sheet); }
+  .btn-primary:hover { background: var(--navy-hover); }
+  .btn-ghost { background: var(--sheet); color: var(--ink); border-color: var(--rule-strong); }
+  .btn-ghost:hover { background: var(--vellum); border-color: var(--ink); }
+  .hero .note {
+    margin: 26px 0 0; max-width: 48ch; padding-left: 13px;
+    border-left: 2px solid var(--rule-strong);
+    font-size: 0.82rem; color: var(--ink-3);
+  }
+  .seal-card {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 36px 28px 30px; background: var(--sheet);
+    border: 1px solid var(--rule);
+  }
+  .seal-card .rosette { width: 220px; height: 220px; color: var(--seal); }
+  .seal-card .label { margin-top: 26px; color: var(--ink-3); }
+  .seal-card p { margin: 6px 0 0; text-align: center; font-family: var(--serif); font-size: 0.92rem; color: var(--ink-2); }
+
+  /* ------------------------------ stat strip --------------------------- */
+  .stat-strip { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--sheet); }
+  .stat-strip .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .stat { padding: 26px 26px 26px 0; }
+  .stat + .stat { border-left: 1px solid var(--rule); padding-left: 26px; }
+  .stat .num { font-family: var(--serif); font-size: 2.1rem; line-height: 1; color: var(--ink); }
+  .stat .desc { margin-top: 8px; font-size: 0.82rem; color: var(--ink-2); }
+
+  /* ------------------------------- section ----------------------------- */
+  section.block { padding: 76px 0; }
+  section.block.tinted { background: var(--sheet); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .section-head { max-width: 68ch; }
+  .section-head h2 {
+    margin: 14px 0 0; font-family: var(--serif); font-weight: 500;
+    font-size: clamp(1.9rem, 3.4vw, 2.7rem); line-height: 1.08; letter-spacing: -0.01em;
+  }
+  .section-head p { margin: 16px 0 0; color: var(--ink-2); font-size: 1.02rem; }
+
+  /* ------------------------------ features ----------------------------- */
+  .features { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--sheet); }
+  .feature { padding: 30px 26px 34px; }
+  .feature + .feature { border-left: 1px solid var(--rule); }
+  .feature .n { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-3); }
+  .feature h3 { margin: 12px 0 0; font-family: var(--serif); font-weight: 500; font-size: 1.22rem; }
+  .feature p { margin: 8px 0 0; font-size: 0.9rem; line-height: 1.55; color: var(--ink-2); }
+
+  /* ------------------------------ screens ------------------------------ */
+  .shots { margin-top: 44px; display: grid; gap: 24px; }
+  .shot {
+    margin: 0; background: var(--sheet); border: 1px solid var(--rule);
+    overflow: hidden;
+  }
+  .shot .frame { display: block; width: 100%; cursor: zoom-in; border: 0; padding: 0; background: none; }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot figcaption {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+    gap: 6px 18px; padding: 14px 18px; border-top: 1px solid var(--rule);
+  }
+  .shot figcaption strong { font-weight: 600; font-size: 0.86rem; }
+  .shot figcaption span { font-size: 0.8rem; color: var(--ink-3); }
+  .shot-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .shot-grid .shot.wide { grid-column: 1 / -1; }
+  .shot.mobile .frame { display: flex; justify-content: center; padding: 30px 20px; background: var(--vellum); }
+  .shot.mobile img { width: 300px; max-width: 100%; }
+
+  /* ----------------------------- lifecycle ----------------------------- */
+  .flow { margin-top: 42px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .flow-step { background: var(--paper); padding: 22px 20px 24px; position: relative; }
+  .flow-step .idx { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-3); }
+  .flow-step .st { margin-top: 10px; font-family: var(--serif); font-size: 1.12rem; }
+  .flow-step .sub { margin-top: 6px; font-size: 0.8rem; color: var(--ink-2); }
+  .flow-step.active { background: var(--seal-tint); }
+  .flow-step.active .st { color: var(--seal); }
+  .branches { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px;
+    border: 1px solid var(--rule-strong); background: var(--sheet);
+    font-size: 0.8rem; color: var(--ink-2); border-radius: 999px;
+  }
+  .chip b { font-weight: 600; color: var(--ink); }
+  .chip.danger { border-color: #dfb6aa; background: var(--danger-tint); color: var(--danger); }
+  .chip.danger b { color: var(--danger); }
+
+  /* ------------------------------ security ----------------------------- */
+  .trust-grid { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .trust { background: var(--sheet); padding: 26px 24px 30px; }
+  .trust .k { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; color: var(--seal); }
+  .trust h3 { margin: 12px 0 0; font-family: var(--serif); font-weight: 500; font-size: 1.14rem; }
+  .trust p { margin: 8px 0 0; font-size: 0.87rem; line-height: 1.55; color: var(--ink-2); }
+
+  /* ------------------------------- verify ------------------------------ */
+  .verify-layout { margin-top: 40px; display: grid; grid-template-columns: 23rem minmax(0, 1fr); gap: 32px; align-items: start; }
+  .verify-form { background: var(--sheet); border: 1px solid var(--rule); padding: 24px; }
+  .verify-form label { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+  .verify-form input {
+    width: 100%; margin-top: 9px; min-height: 46px; padding: 0 13px;
+    border: 1px solid var(--rule-strong); border-radius: var(--radius);
+    background: var(--paper); color: var(--ink);
+    font-family: var(--mono); font-size: 0.9rem;
+  }
+  .verify-form input:focus { border-color: var(--navy); outline: 2px solid var(--navy); outline-offset: 1px; }
+  .verify-form .btn { width: 100%; margin-top: 14px; }
+  .verify-form .hint { margin: 14px 0 0; font-size: 0.78rem; color: var(--ink-3); }
+  .certificate {
+    border: 1px solid var(--seal-rule); background: var(--sheet);
+    padding: 30px 32px 28px; position: relative;
+  }
+  .certificate::before {
+    content: ""; position: absolute; inset: 5px; border: 1px solid var(--seal-rule);
+    pointer-events: none;
+  }
+  .certificate .inner { position: relative; }
+  .cert-top { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--rule); padding-bottom: 18px; }
+  .cert-top .rosette { width: 72px; height: 72px; color: var(--seal); flex: none; }
+  .cert-top .caps { color: var(--seal); }
+  .cert-top h3 { margin: 6px 0 0; font-family: var(--serif); font-weight: 500; font-size: 1.55rem; }
+  .cert-id { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--mono); font-size: 0.78rem; color: var(--ink-2); }
+  .cert-id b { color: var(--ink); font-weight: 500; }
+  .checks { list-style: none; margin: 20px 0 0; padding: 0; }
+  .checks li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 0.88rem; }
+  .checks li:last-child { border-bottom: 0; }
+  .checks .glyph { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--seal); }
+  .checks .state { margin-left: auto; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--seal); font-weight: 600; }
+  .cert-foot { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: 0.76rem; color: var(--ink-3); }
+  .cert-foot .hash { font-family: var(--mono); color: var(--ink-2); }
+  .sample-flag { position: absolute; top: 14px; right: 16px; font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--attention); background: var(--attention-tint); border: 1px solid var(--attention-rule); padding: 3px 8px; border-radius: 999px; }
+  .cert-empty { border: 1px dashed var(--rule-strong); background: var(--paper); padding: 40px 28px; text-align: center; color: var(--ink-3); font-size: 0.9rem; }
+
+  /* ------------------------------ templates ---------------------------- */
+  .template-list { margin-top: 40px; border-top: 1px solid var(--rule); }
+  .template-row { display: grid; grid-template-columns: 3rem minmax(0, 15rem) minmax(0, 1fr); gap: 20px; align-items: baseline; padding: 20px 0; border-bottom: 1px solid var(--rule); }
+  .template-row .n { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-3); }
+  .template-row h3 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 1.16rem; }
+  .template-row .cat { display: block; margin-top: 4px; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--seal); }
+  .template-row p { margin: 0; font-size: 0.88rem; color: var(--ink-2); }
+
+  /* -------------------------------- AI --------------------------------- */
+  .ai-layout { margin-top: 40px; display: grid; grid-template-columns: minmax(0, 1fr) 25rem; gap: 40px; align-items: start; }
+  .slip { background: var(--sheet); border: 1px solid var(--rule); border-left: 3px solid var(--attention); padding: 22px 22px 18px; }
+  .slip .head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
+  .slip .head .caps { color: var(--attention); font-size: 0.64rem; }
+  .slip .head .mono { font-size: 0.68rem; color: var(--ink-3); }
+  .suggestion { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+  .suggestion .field { display: flex; justify-content: space-between; gap: 10px; font-size: 0.78rem; color: var(--ink-3); }
+  .suggestion .value { margin-top: 6px; font-family: var(--serif); font-size: 1.02rem; color: var(--ink); }
+  .suggestion .basis { margin-top: 6px; font-size: 0.74rem; color: var(--ink-3); font-style: italic; }
+  .suggestion .ops { display: flex; gap: 8px; margin-top: 10px; }
+  .op { border: 1px solid var(--rule-strong); background: var(--paper); color: var(--ink-2); border-radius: 4px; font-size: 0.7rem; padding: 3px 9px; }
+  .op.primary { background: var(--navy); border-color: var(--navy); color: var(--sheet); }
+  .slip .disclaimer { margin: 14px 0 0; font-size: 0.7rem; color: var(--ink-3); }
+  .ai-copy p { margin: 14px 0 0; color: var(--ink-2); font-size: 0.95rem; }
+  .ai-copy ul { margin: 18px 0 0; padding: 0; list-style: none; }
+  .ai-copy li { position: relative; padding-left: 20px; margin-top: 10px; font-size: 0.9rem; color: var(--ink-2); }
+  .ai-copy li::before { content: "—"; position: absolute; left: 0; color: var(--seal); }
+
+  /* ------------------------------ run local ---------------------------- */
+  .run { background: var(--navy); color: var(--sheet); }
+  .run .wrap { padding-top: 64px; padding-bottom: 64px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 30rem); gap: 56px; align-items: center; }
+  .run .eyebrow { color: #a9c8bf; }
+  .run h2 { margin: 14px 0 0; font-family: var(--serif); font-weight: 500; font-size: clamp(1.9rem, 3.2vw, 2.6rem); line-height: 1.1; }
+  .run p { margin: 16px 0 0; color: #d7dbe4; font-size: 0.98rem; }
+  .run .actions { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 12px; }
+  .run .btn-primary { background: var(--sheet); color: var(--navy); border-color: var(--sheet); }
+  .run .btn-primary:hover { background: var(--vellum); }
+  .run .btn-ghost { background: transparent; color: var(--sheet); border-color: #5b6a86; }
+  .run .btn-ghost:hover { background: #24365a; border-color: #8b9ab5; }
+  pre {
+    margin: 0; padding: 22px 24px; overflow-x: auto;
+    background: #111b2e; border: 1px solid #2c3d5e; border-radius: var(--panel);
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.75; color: #dfe5ee;
+  }
+  pre .c { color: #8fa0bd; }
+  pre .k { color: #a9c8bf; }
+
+  /* ------------------------------- footer ------------------------------ */
+  footer.site-footer { border-top: 1px solid var(--rule); background: var(--paper); }
+  footer.site-footer .wrap { padding-top: 36px; padding-bottom: 44px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: start; }
+  .footer-brand { display: flex; gap: 12px; align-items: flex-start; max-width: 46ch; }
+  .footer-brand img { width: 34px; height: 34px; }
+  .footer-brand p { margin: 6px 0 0; font-size: 0.8rem; color: var(--ink-3); }
+  .footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: flex-end; font-size: 0.82rem; }
+  .footer-links a { color: var(--ink-2); text-decoration: none; border-bottom: 1px solid transparent; }
+  .footer-links a:hover { color: var(--ink); border-bottom-color: var(--rule-strong); }
+  .footer-note { grid-column: 1 / -1; margin-top: 6px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 0.74rem; color: var(--ink-3); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+
+  /* ------------------------------ lightbox ----------------------------- */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 90; display: none;
+    background: rgba(22, 24, 29, 0.9); padding: 32px;
+  }
+  .lightbox.open { display: flex; align-items: center; justify-content: center; }
+  .lightbox img { max-width: min(1400px, 94vw); max-height: 88vh; border: 1px solid #3a3d45; }
+  .lightbox button {
+    position: absolute; top: 18px; right: 20px; width: 44px; height: 44px;
+    border: 1px solid #5b5e66; background: #16181d; color: #f3efe6;
+    font-size: 1.4rem; line-height: 1; cursor: pointer; border-radius: 6px;
+  }
+
+  /* ------------------------------ responsive --------------------------- */
+  @media (max-width: 980px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 40px; }
+    .seal-card { max-width: 22rem; }
+    .features { grid-template-columns: repeat(2, 1fr); }
+    .feature:nth-child(3) { border-left: 0; }
+    .feature:nth-child(n + 3) { border-top: 1px solid var(--rule); }
+    .trust-grid { grid-template-columns: repeat(2, 1fr); }
+    .verify-layout { grid-template-columns: 1fr; }
+    .ai-layout { grid-template-columns: 1fr; }
+    .run .wrap { grid-template-columns: 1fr; }
+    .stat-strip .wrap { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(3) { border-left: 0; }
+    .stat:nth-child(n + 3) { border-top: 1px solid var(--rule); }
+  }
+  @media (max-width: 700px) {
+    .nav a:not(.github) { display: none; }
+    .hero { padding: 52px 0 44px; }
+    section.block { padding: 56px 0; }
+    .shot-grid { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: 1fr 1fr; }
+    .template-row { grid-template-columns: 2rem 1fr; }
+    .template-row p { grid-column: 2; }
+    footer.site-footer .wrap { grid-template-columns: 1fr; }
+    .footer-links { justify-content: flex-start; }
+    .cert-top { flex-direction: column; align-items: flex-start; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="rosette-geometry" viewBox="0 0 100 100">
+    <g fill="none" stroke="currentColor">
+      <g transform="rotate(142.58823529411765 50 50)">
+        <circle cx="50" cy="50" r="44" stroke-width="0.54"/>
+        <circle cx="50" cy="50" r="41.6" stroke-width="0.378" stroke-dasharray="1.1 2.4"/>
+        <circle cx="50" cy="50" r="39" stroke-width="0.27"/>
+        <g transform="rotate(142.58823529411765 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(165.08823529411765 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(187.58823529411765 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(210.08823529411765 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(232.58823529411765 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(255.08823529411765 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(277.5882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(300.0882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(322.5882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(345.0882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(367.5882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(390.0882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(412.5882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(435.0882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(457.5882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <g transform="rotate(480.0882352941177 50 50)"><ellipse cx="50" cy="33.76" rx="7.04" ry="20.24" stroke-width="0.54"/><line x1="50" y1="50" x2="50" y2="7" stroke-width="0.243"/></g>
+        <circle cx="50" cy="50" r="17" stroke-width="0.54"/>
+        <ellipse cx="50" cy="43.425" rx="3.4" ry="8.075" stroke-width="0.432" transform="rotate(-142.58823529411765 50 50)"/>
+        <ellipse cx="50" cy="43.425" rx="3.4" ry="8.075" stroke-width="0.432" transform="rotate(-82.58823529411765 50 50)"/>
+        <ellipse cx="50" cy="43.425" rx="3.4" ry="8.075" stroke-width="0.432" transform="rotate(-22.588235294117652 50 50)"/>
+        <ellipse cx="50" cy="43.425" rx="3.4" ry="8.075" stroke-width="0.432" transform="rotate(37.41176470588235 50 50)"/>
+        <ellipse cx="50" cy="43.425" rx="3.4" ry="8.075" stroke-width="0.432" transform="rotate(97.41176470588235 50 50)"/>
+        <ellipse cx="50" cy="43.425" rx="3.4" ry="8.075" stroke-width="0.432" transform="rotate(157.41176470588235 50 50)"/>
+        <circle cx="50" cy="50" r="5.78" stroke-width="0.378"/>
+        <circle cx="50" cy="50" r="0.9" fill="currentColor" stroke="none"/>
+      </g>
+    </g>
+  </symbol>
+</svg>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="AgreementHub home">
+      <img src="assets/icon.svg" alt="" />
+      <span class="name"><strong>AgreementHub</strong><span>The Instrument</span></span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#product">Product</a>
+      <a href="#screens">Screens</a>
+      <a href="#lifecycle">Lifecycle</a>
+      <a href="#security">Security</a>
+      <a href="#verify">Verify</a>
+      <a class="github" href="https://github.com/Vinc3980/AgreementHub">View source</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap">
+      <div>
+        <p class="caps eyebrow">Digital agreements, end to end</p>
+        <h1>Agreements you can draft, sign, and independently verify.</h1>
+        <p class="lede">
+          AgreementHub helps organisations create and manage agreements end to end:
+          data-driven templates, structured drafting, review and approvals, electronic
+          signatures, and an append-only audit trail. Every finalised document is sealed
+          with a content hash that anyone can check from its Agreement ID.
+        </p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#screens">Explore the product</a>
+          <a class="btn btn-ghost" href="https://github.com/Vinc3980/AgreementHub">View source on GitHub</a>
+        </div>
+        <p class="note">
+          Signing is bound to the exact content at that moment. Any later change creates a
+          new version and a new hash. The sealed record never moves.
+        </p>
+      </div>
+      <div class="seal-card">
+        <svg class="rosette" role="img" aria-label="Specimen of the hash rosette"><use href="#rosette-geometry"/></svg>
+        <p class="caps label">Specimen of the seal</p>
+        <p>Deterministic. Monochrome.<br />Generated from the document hash.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="stat-strip" aria-label="Platform at a glance">
+    <div class="wrap">
+      <div class="stat"><div class="num">219</div><div class="desc">automated tests across 21 suites</div></div>
+      <div class="stat"><div class="num">5</div><div class="desc">seeded agreement templates</div></div>
+      <div class="stat"><div class="num">3</div><div class="desc">MVP signing methods</div></div>
+      <div class="stat"><div class="num">0</div><div class="desc">document contents revealed by verification</div></div>
+    </div>
+  </div>
+
+  <div class="features" id="product">
+    <article class="feature">
+      <p class="n">01</p>
+      <h3>Draft to signature</h3>
+      <p>Templates, structured drafting, approvals, and ordered or parallel signing in one flow.</p>
+    </article>
+    <article class="feature">
+      <p class="n">02</p>
+      <h3>Immutable history</h3>
+      <p>Every change becomes a hashed version with an append-only, tamper-evident audit chain.</p>
+    </article>
+    <article class="feature">
+      <p class="n">03</p>
+      <h3>Public verification</h3>
+      <p>Anyone can confirm a sealed document’s integrity from its Agreement ID. No content is revealed.</p>
+    </article>
+    <article class="feature">
+      <p class="n">04</p>
+      <h3>Clear states</h3>
+      <p>Draft, in review, awaiting signatures, active, expired: always visible, never ambiguous.</p>
+    </article>
+  </div>
+
+  <section class="block" id="screens">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="caps eyebrow" style="color: var(--seal)">Inside the instrument</p>
+        <h2>A register, not a dashboard.</h2>
+        <p>
+          The interface reads like a sealed legal record: ruled lines, generous margins,
+          serif document text, monospace identifiers, and one action colour. These are
+          real screens from the running application.
+        </p>
+      </div>
+
+      <div class="shots">
+        <figure class="shot">
+          <button class="frame" type="button" data-full="assets/screens/desk.png" data-caption="The Desk">
+            <img src="assets/screens/desk.png" alt="The Desk: counts rendered as a ruled ledger strip, a ninety-day expiry horizon, agreements waiting on the user, and the register of recent activity." loading="lazy" />
+          </button>
+          <figcaption>
+            <strong>The Desk</strong>
+            <span>Counts as one ruled ledger strip · expiry horizon · “waiting on you” · the register</span>
+          </figcaption>
+        </figure>
+
+        <div class="shot-grid">
+          <figure class="shot">
+            <button class="frame" type="button" data-full="assets/screens/agreement.png" data-caption="Agreement detail">
+              <img src="assets/screens/agreement.png" alt="Agreement detail showing the rosette, public ID and hash, lifecycle track, next-step line, and the document sheet." loading="lazy" />
+            </button>
+            <figcaption>
+              <strong>Agreement detail</strong>
+              <span>Rosette · ID and hash · lifecycle · document sheet</span>
+            </figcaption>
+          </figure>
+
+          <figure class="shot">
+            <button class="frame" type="button" data-full="assets/screens/editor.png" data-caption="Structured draft editor">
+              <img src="assets/screens/editor.png" alt="Draft editor with template fields grouped by section, guidance, and a required-fields completeness check." loading="lazy" />
+            </button>
+            <figcaption>
+              <strong>Structured draft editor</strong>
+              <span>Template fields · guidance · required-field gates</span>
+            </figcaption>
+          </figure>
+
+          <figure class="shot">
+            <button class="frame" type="button" data-full="assets/screens/agreements.png" data-caption="Agreements register">
+              <img src="assets/screens/agreements.png" alt="The agreements register with filters, status stamps, public IDs, and versions." loading="lazy" />
+            </button>
+            <figcaption>
+              <strong>The register</strong>
+              <span>Filters · status stamps · public IDs · versions</span>
+            </figcaption>
+          </figure>
+
+          <figure class="shot">
+            <button class="frame" type="button" data-full="assets/screens/new-agreement.png" data-caption="Start from a template">
+              <img src="assets/screens/new-agreement.png" alt="New agreement flow with template categories and a plain-language brief." loading="lazy" />
+            </button>
+            <figcaption>
+              <strong>Start from a template</strong>
+              <span>Categories · plain-language brief · AI assistance</span>
+            </figcaption>
+          </figure>
+
+          <figure class="shot wide mobile">
+            <button class="frame" type="button" data-full="assets/screens/desk-mobile.png" data-caption="Desk on a phone">
+              <img src="assets/screens/desk-mobile.png" alt="The Desk on a narrow phone viewport, with a bottom navigation bar." loading="lazy" />
+            </button>
+            <figcaption>
+              <strong>Desk on a phone</strong>
+              <span>Responsive shell · bottom navigation · same ruled language</span>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block tinted" id="lifecycle">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="caps eyebrow" style="color: var(--seal)">Lifecycle</p>
+        <h2>Every state is visible. Every transition is recorded.</h2>
+        <p>
+          Transitions are enforced by a per-actor matrix in the domain layer and by
+          database status checks. Illegal jumps return <span class="mono">409 INVALID_TRANSITION</span>;
+          a sealed agreement re-opens only through the amendment flow.
+        </p>
+      </div>
+
+      <div class="flow" role="list" aria-label="Agreement lifecycle">
+        <div class="flow-step" role="listitem">
+          <div class="idx">01</div>
+          <div class="st">Draft</div>
+          <div class="sub">Templates, fields, working copy</div>
+        </div>
+        <div class="flow-step" role="listitem">
+          <div class="idx">02</div>
+          <div class="st">Review / negotiate</div>
+          <div class="sub">Approvals, comments, suggestions, versions</div>
+        </div>
+        <div class="flow-step" role="listitem">
+          <div class="idx">03</div>
+          <div class="st">Awaiting signatures</div>
+          <div class="sub">Ordered or parallel, bound to the version</div>
+        </div>
+        <div class="flow-step active" role="listitem">
+          <div class="idx">04</div>
+          <div class="st">Sealed · Active</div>
+          <div class="sub">Final PDF, hash recorded, publicly verifiable</div>
+        </div>
+      </div>
+
+      <div class="branches">
+        <span class="chip"><b>Amendment</b> ACTIVE → NEGOTIATION, final version stays sealed</span>
+        <span class="chip danger"><b>Cancelled</b> · <b>Terminated</b> · <b>Rejected</b> require a reason</span>
+        <span class="chip"><b>Expiry</b> ACTIVE → EXPIRING → EXPIRED</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="security">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="caps eyebrow" style="color: var(--seal)">Security model</p>
+        <h2>Trust is structural, not promised.</h2>
+        <p>
+          Deny-by-default authorization, hashed credentials and sessions, append-only
+          records, and a public verification page that reveals metadata only. Errors never
+          leak stack traces, SQL, hashes, tokens, or audit internals.
+        </p>
+      </div>
+
+      <div class="trust-grid">
+        <article class="trust">
+          <p class="k">AUDIT</p>
+          <h3>Hash-chained history</h3>
+          <p>Every action appends a row with a per-agreement sequence, previous hash, and event hash. Forged, edited, or deleted events are detected.</p>
+        </article>
+        <article class="trust">
+          <p class="k">IMMUTABILITY</p>
+          <h3>Final records cannot move</h3>
+          <p>Database triggers freeze committed versions, signatures, final documents, and audit rows. Only drafts refresh in place.</p>
+        </article>
+        <article class="trust">
+          <p class="k">VERIFICATION</p>
+          <h3>Metadata only, by design</h3>
+          <p>The public page returns category, status, version, dates, integrity, and a hash prefix. Never contents, parties, comments, or audit internals.</p>
+        </article>
+        <article class="trust">
+          <p class="k">SIGNING</p>
+          <h3>Bound to the exact version</h3>
+          <p>Typed name, drawn signature, or explicit acceptance. The method and payload hash are recorded with the document hash at signing.</p>
+        </article>
+        <article class="trust">
+          <p class="k">STORAGE</p>
+          <h3>Private and hash-checked</h3>
+          <p>Final PDFs live server-side under a write-once key, stream only through authenticated routes, and are re-hashed on every download.</p>
+        </article>
+        <article class="trust">
+          <p class="k">ACCESS</p>
+          <h3>Deny by default</h3>
+          <p>Membership and party-role checks per agreement. Invisible resources return 404, insufficient roles return 403, and Argon2id protects passwords.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="block tinted" id="verify">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="caps eyebrow" style="color: var(--seal)">Public register</p>
+        <h2>Verify a sealed record.</h2>
+        <p>
+          Enter an Agreement ID to see the kind of certificate the public page returns:
+          metadata and integrity only, never the document. The preview below is a sample
+          record from the static showcase.
+        </p>
+      </div>
+
+      <div class="verify-layout">
+        <form class="verify-form" id="verify-form" novalidate>
+          <label for="agreement-id">Agreement ID</label>
+          <input id="agreement-id" name="agreement-id" type="text" value="AGR-GH-2026-000001" autocomplete="off" spellcheck="false" aria-describedby="verify-hint" />
+          <button class="btn btn-primary" type="submit">Check integrity</button>
+          <p class="hint" id="verify-hint">Format: <span class="mono">AGR-GH-2026-000001</span>. Any valid-format ID shows a sample certificate in this static preview.</p>
+        </form>
+
+        <div id="certificate" aria-live="polite">
+          <div class="cert-empty">Enter an Agreement ID to preview the verification certificate.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="templates">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="caps eyebrow" style="color: var(--seal)">Templates</p>
+        <h2>Templates are data, not code.</h2>
+        <p>
+          Each template stores a <span class="mono">content_schema</span> that the shared
+          engine evaluates in the API and the web UI alike. Adding a template or category
+          needs no UI or backend change. Fields carry types, guidance, defaults, and
+          one-level conditions; required visible fields gate approvals, signatures, and
+          finalisation.
+        </p>
+      </div>
+
+      <div class="template-list">
+        <div class="template-row">
+          <div class="n">01</div>
+          <div><h3>Standard Freelance Service Agreement</h3><span class="cat">Freelance / Service</span></div>
+          <p>Engagement terms between a freelancer and a client: scope, fees, delivery, IP, and confidentiality.</p>
+        </div>
+        <div class="template-row">
+          <div class="n">02</div>
+          <div><h3>Standard Rental Agreement</h3><span class="cat">Rental</span></div>
+          <p>Residential or commercial lease terms: rent, deposit, term, permitted use, and maintenance.</p>
+        </div>
+        <div class="template-row">
+          <div class="n">03</div>
+          <div><h3>Standard Business Proposal</h3><span class="cat">Proposal</span></div>
+          <p>Objectives, scope, timeline, and investment, with a clear path from proposal to agreement.</p>
+        </div>
+        <div class="template-row">
+          <div class="n">04</div>
+          <div><h3>Non-Disclosure Agreement</h3><span class="cat">NDA</span></div>
+          <p>Mutual or one-way confidentiality with purpose, duration, exclusions, and governing law.</p>
+        </div>
+        <div class="template-row">
+          <div class="n">05</div>
+          <div><h3>Standard Client / User Agreement</h3><span class="cat">Client / User</span></div>
+          <p>Service access, acceptable use, payment, termination, and liability terms for client engagements.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block tinted" id="assistant">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="caps eyebrow" style="color: var(--seal)">AI Agreement Assistant</p>
+        <h2>Suggestions, never silent edits.</h2>
+        <p>
+          Five read-only assistant features: plain language to fields, missing-information
+          review, clause explanation, summary, and suggested questions. Every response is
+          disclaimed, nothing is written without explicit acceptance, and requests are
+          logged with metadata only.
+        </p>
+      </div>
+
+      <div class="ai-layout">
+        <div class="ai-copy">
+          <p>
+            Describe the deal in plain language. The assistant maps suggestions onto the
+            template’s real field codes, cites the basis for each, and lists what it could
+            not derive instead of inventing it.
+          </p>
+          <ul>
+            <li><b>Provider backend is swappable.</b> A deterministic offline engine by default; any OpenAI-compatible endpoint when configured.</li>
+            <li><b>Keys stay server-side.</b> No API key ever reaches the browser.</li>
+            <li><b>Finalised agreements stay immutable.</b> The read-only features remain available for explaining them.</li>
+            <li><b>Applying a suggestion is the user’s own edit</b>, recorded with provenance <span class="mono">AI_SUGGESTED_CONFIRMED</span>.</li>
+          </ul>
+        </div>
+
+        <div class="slip" aria-label="Example AI suggestion slip">
+          <div class="head">
+            <span class="caps">Suggestion slip</span>
+            <span class="mono">rules · v1</span>
+          </div>
+          <div class="suggestion">
+            <div class="field"><span>project_fee</span><span>money · required</span></div>
+            <div class="value">48,000 USD</div>
+            <div class="basis">Basis: “forty-eight thousand dollars for the whole build”</div>
+            <div class="ops"><span class="op primary">Accept</span><span class="op">Edit</span><span class="op">Reject</span></div>
+          </div>
+          <div class="suggestion">
+            <div class="field"><span>payment_schedule</span><span>select · required</span></div>
+            <div class="value">Per milestone</div>
+            <div class="basis">Basis: “we settle after each milestone”</div>
+            <div class="ops"><span class="op primary">Accept</span><span class="op">Edit</span><span class="op">Reject</span></div>
+          </div>
+          <div class="suggestion" style="border-bottom: 0">
+            <div class="field"><span>Needs your input</span><span>not derived</span></div>
+            <div class="value">Delivery date</div>
+            <div class="basis">The description did not state a target date.</div>
+          </div>
+          <p class="disclaimer">AI-generated assistance. Review carefully. This is not legal advice.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="run" id="run">
+    <div class="wrap">
+      <div>
+        <p class="caps eyebrow">Open source · self-hostable</p>
+        <h2>Run the full stack in a few minutes.</h2>
+        <p>
+          The application is a Node.js API (Fastify 5), a PostgreSQL 17 schema, and a
+          Next.js 16 web app. No Docker required; point it at any reachable PostgreSQL.
+          This GitHub Pages site is the public showcase — the live product runs on a
+          Node.js host with a database.
+        </p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/Vinc3980/AgreementHub">Get the source</a>
+          <a class="btn btn-ghost" href="https://github.com/Vinc3980/AgreementHub/blob/main/docs/SPEC.md">Read the specification</a>
+        </div>
+      </div>
+      <pre aria-label="Local setup commands"><span class="c"># 1. install dependencies</span>
+<span class="k">npm</span> install
+
+<span class="c"># 2. configure the database</span>
+<span class="k">Copy-Item</span> .env.example .env
+
+<span class="c"># 3. migrate and seed</span>
+<span class="k">npm</span> run db:migrate
+<span class="k">npm</span> run db:seed
+
+<span class="c"># 4. run API + web</span>
+<span class="k">npm</span> run dev
+<span class="c"># → http://127.0.0.1:3001</span></pre>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-brand">
+      <img src="assets/icon.svg" alt="" />
+      <div>
+        <strong style="font-family: var(--serif); font-weight: 500; font-size: 1.02rem;">AgreementHub</strong>
+        <p>Secure digital agreements with a tamper-evident audit trail and public integrity verification. Built in Ghana.</p>
+      </div>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="https://github.com/Vinc3980/AgreementHub">GitHub</a>
+      <a href="https://github.com/Vinc3980/AgreementHub/blob/main/docs/SPEC.md">Specification</a>
+      <a href="https://github.com/Vinc3980/AgreementHub/blob/main/docs/SECURITY_AUDIT_REPORT.md">Security audit</a>
+      <a href="#verify">Verify a record</a>
+    </nav>
+    <div class="footer-note">
+      <span>Electronic acceptance, signature, and verification. Not a legal advice service.</span>
+      <span>Static showcase · full stack runs on Node.js + PostgreSQL</span>
+    </div>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Screenshot preview">
+  <button type="button" id="lightbox-close" aria-label="Close preview">×</button>
+  <img id="lightbox-img" src="" alt="" />
+</div>
+
+<script>
+  (function () {
+    var sample = {
+      category: 'Freelance / Service Agreement',
+      version: 'v1',
+      status: 'ACTIVE',
+      sealed: '10 November 2026',
+      hash: '4709 f76c 1a3e 8bd2'
+    };
+
+    function esc(value) {
+      return String(value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function certificateHtml(id) {
+      return '' +
+        '<div class="certificate">' +
+          '<span class="sample-flag">Sample record</span>' +
+          '<div class="inner">' +
+            '<div class="cert-top">' +
+              '<div>' +
+                '<p class="caps">Public verification</p>' +
+                '<h3>Sealed and intact</h3>' +
+              '</div>' +
+              '<svg class="rosette" role="img" aria-label="Document fingerprint rosette"><use href="#rosette-geometry"/></svg>' +
+            '</div>' +
+            '<div class="cert-id">' +
+              '<span>ID <b>' + esc(id) + '</b></span>' +
+              '<span>CATEGORY <b>' + esc(sample.category) + '</b></span>' +
+              '<span>VERSION <b>' + esc(sample.version) + '</b></span>' +
+              '<span>SEALED <b>' + esc(sample.sealed) + '</b></span>' +
+            '</div>' +
+            '<ul class="checks">' +
+              '<li><svg class="glyph" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>Agreement found</span><span class="state">verified</span></li>' +
+              '<li><svg class="glyph" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>Final version sealed</span><span class="state">verified</span></li>' +
+              '<li><svg class="glyph" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>Content hash matches the sealed record</span><span class="state">verified</span></li>' +
+              '<li><svg class="glyph" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>PDF hash matches the generated document</span><span class="state">verified</span></li>' +
+            '</ul>' +
+            '<div class="cert-foot">' +
+              '<span>Status <b style="color: var(--seal)">' + esc(sample.status) + '</b></span>' +
+              '<span class="hash">SHA-256 ' + esc(sample.hash) + '…</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    var form = document.getElementById('verify-form');
+    var input = document.getElementById('agreement-id');
+    var output = document.getElementById('certificate');
+
+    // Show a complete sample certificate immediately so the section is never empty.
+    output.innerHTML = certificateHtml(input.value.trim().toUpperCase());
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var id = input.value.trim().toUpperCase();
+      var pattern = /^AGR-[A-Z]{2}-\d{4}-\d{6}$/;
+      if (!pattern.test(id)) {
+        output.innerHTML = '<div class="cert-empty">That does not look like an Agreement ID. Use the format <span class="mono">AGR-GH-2026-000001</span>.</div>';
+        input.focus();
+        return;
+      }
+      output.innerHTML = certificateHtml(id);
+    });
+
+    // Lightbox for the real application screenshots.
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = document.getElementById('lightbox-img');
+    var closeBtn = document.getElementById('lightbox-close');
+    var lastFocus = null;
+
+    function openLightbox(src, alt) {
+      lastFocus = document.activeElement;
+      lightboxImg.src = src;
+      lightboxImg.alt = alt || 'Screenshot';
+      lightbox.classList.add('open');
+      closeBtn.focus();
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      lightboxImg.src = '';
+      document.body.style.overflow = '';
+      if (lastFocus) lastFocus.focus();
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('.shot .frame'), function (button) {
+      button.addEventListener('click', function () {
+        var img = button.querySelector('img');
+        openLightbox(button.getAttribute('data-full'), img ? img.alt : '');
+      });
+    });
+    closeBtn.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', function (event) {
+      if (event.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+    });
+  })();
+</script>
+</body>
 </html>

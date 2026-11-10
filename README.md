@@ -16,6 +16,15 @@ covering the complete agreement lifecycle).
 - Frontend stack: Next.js 16 (App Router, Turbopack), React 19, Tailwind CSS v4,
   TanStack Query 5, lucide-react
 
+## Live site
+
+- **Public showcase:** <https://vinc3980.github.io/AgreementHub/> — the static product
+  site in [`docs/`](docs/) published with GitHub Pages: overview, real application
+  screenshots, and a sample verification certificate.
+- GitHub Pages hosts static files only. The full application (Fastify API + PostgreSQL +
+  Next.js server) needs a Node.js host, a database, a persistent `STORAGE_DIR`, and a
+  Chromium build for PDF generation. See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ---
 
 ## Requirements
@@ -510,6 +519,21 @@ See [`.env.example`](.env.example). Key variables:
 | `STORAGE_DIR` | `./storage` | Server-side storage root (document PDFs in `documents/…`; never exposed via the API) |
 | `PDF_GENERATION` | `on` | `on`/`off`, generate PDFs at finalization/on demand |
 | `PDF_BROWSER_PATH` | *(auto)* | Chrome/Edge executable for the PDF renderer (auto-detected when unset) |
+
+---
+
+## Deployment
+
+The GitHub Pages site (`docs/`) is the static showcase only. To run the real product:
+
+1. Provision Node.js ≥ 20, PostgreSQL ≥ 14, and Chrome/Chromium (PDF generation).
+2. Set production environment variables (see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)).
+3. `npm ci && npm run build && npm run db:migrate && npm run db:seed`.
+4. Start the API (`npm run -w @agreementhub/api start`) and the web app
+   (`npm run -w @agreementhub/web start`), then put both behind a TLS reverse proxy.
+
+Full walkthrough, including a single-VPS layout and the production checklist:
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ---
 
