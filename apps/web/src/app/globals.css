@@ -1,0 +1,336 @@
+@import "tailwindcss";
+@import "@fontsource/mrs-saint-delafield/400.css";
+
+/* ==================================================================
+   AgreementHub, "The Instrument"
+   Ink · Vellum · Verdigris
+   ------------------------------------------------------------------
+   Every colour, radius, type step and motion value lives here.
+   Components never use raw hex values; they use these token names.
+   Contrast notes are measured against the token they sit on.
+   ================================================================== */
+
+@theme {
+  /* ------------------------------- type ---------------------------- */
+  --font-sans: var(--font-instrument), "Helvetica Neue", sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains), "SFMono-Regular", Consolas, monospace;
+
+  /* 0.75 / 0.8125 / 0.9375 (body) / 1.0625 / 1.375 / 1.75 / 2.5 */
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1.1;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.35;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.375rem;
+  --text-lg--line-height: 1.3;
+  --text-xl: 1.75rem;
+  --text-xl--line-height: 1.2;
+  --text-2xl: 2.5rem;
+  --text-2xl--line-height: 1.1;
+  --text-3xl: 3.25rem;
+  --text-3xl--line-height: 1.02;
+
+  /* ----------------------------- colour ---------------------------- */
+  /* Paper and ink */
+  --color-paper: #f3efe6;
+  --color-sheet: #fcfbf7;
+  --color-vellum: #ede8dc;
+  --color-ink: #16181d; /* 15.5:1 on paper */
+  --color-ink-2: #4a4d55; /* 7.4:1 */
+  --color-ink-3: #62656d; /* 5.1:1, minimum text tone */
+  --color-rule: #d9d3c4;
+  --color-rule-strong: #b9b2a0;
+
+  /* Action: navy is the only action colour */
+  --color-navy: #1c2b4a; /* 14:1 with white text */
+  --color-navy-hover: #14203a;
+  --color-navy-tint: #e3e6ed;
+
+  /* Sealed / verified / final, never generic success */
+  --color-seal: #0f5f53; /* 7.3:1 on sheet */
+  --color-seal-tint: #e3efea;
+  --color-seal-rule: #a9c8bf;
+
+  /* Needs a human: review, approval, pending signature, expiring */
+  --color-attention: #7a4e00; /* 5.9:1 on attention tint */
+  --color-attention-tint: #f6e7c4;
+  --color-attention-rule: #dfc48b;
+
+  /* Redline convention: insertions in diffs and tracked changes */
+  --color-redline: #1d4fa8; /* 7.4:1 */
+
+  /* Something went wrong / destructive */
+  --color-danger: #a3321e; /* 5.3:1 on danger tint */
+  --color-danger-tint: #f5ddd6;
+  --color-danger-rule: #dfb6aa;
+
+  /* -------------------- compatibility aliases ---------------------- */
+  /* Existing surfaces use these names; each maps onto the palette above
+     so no legacy screen can drift back to the old SaaS colours. */
+  --color-canvas: var(--color-paper);
+  --color-surface: var(--color-sheet);
+  --color-surface-alt: var(--color-vellum);
+  --color-muted: var(--color-ink-2);
+  --color-subtle: var(--color-ink-3);
+  --color-line: var(--color-rule);
+  --color-line-strong: var(--color-rule-strong);
+  --color-brand: var(--color-navy);
+  --color-brand-hover: var(--color-navy-hover);
+  --color-brand-soft: var(--color-navy-tint);
+  --color-brand-ring: var(--color-navy);
+  --color-success: var(--color-seal);
+  --color-success-soft: var(--color-seal-tint);
+  --color-success-line: var(--color-seal-rule);
+  --color-warning: var(--color-attention);
+  --color-warning-soft: var(--color-attention-tint);
+  --color-warning-line: var(--color-attention-rule);
+  --color-danger-soft: var(--color-danger-tint);
+  --color-danger-line: var(--color-danger-rule);
+  --color-info: var(--color-navy);
+  --color-info-soft: var(--color-navy-tint);
+  --color-info-line: var(--color-rule-strong);
+  --color-neutral-soft: var(--color-vellum);
+  --color-neutral-line: var(--color-rule);
+
+  /* ------------------------- shape & motion ------------------------ */
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --radius-overlay: 12px;
+  --ease-instrument: cubic-bezier(0.2, 0.65, 0.2, 1);
+  --duration-ui: 160ms;
+  --duration-seal: 600ms;
+}
+
+/* Dark theme is phase 2: swap the token block, never the components. */
+[data-theme="dark"] {
+  --color-paper: #14130f;
+  --color-sheet: #1b1a15;
+  --color-vellum: #24221b;
+  --color-ink: #f1ede2;
+  --color-ink-2: #c6c1b5;
+  --color-ink-3: #a8a396;
+  --color-rule: #3a372e;
+  --color-rule-strong: #5b5649;
+  --color-navy: #9db4e0;
+  --color-navy-hover: #b4c6e8;
+  --color-navy-tint: #23293a;
+  --color-seal: #7fc4b3;
+  --color-seal-tint: #17332d;
+  --color-seal-rule: #2f5b50;
+  --color-attention: #e0b56b;
+  --color-attention-tint: #322813;
+  --color-attention-rule: #5f4c25;
+  --color-danger: #e8917e;
+  --color-danger-tint: #34201b;
+  --color-danger-rule: #613b32;
+  --color-redline: #9db9f0;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-rule);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.012em;
+  }
+
+  ::selection {
+    background: var(--color-seal-tint);
+    color: var(--color-ink);
+  }
+
+  /* A single, consistent focus cue: 2px navy with a clear offset. */
+  :focus-visible {
+    outline: 2px solid var(--color-navy);
+    outline-offset: 2px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  summary {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /* Small-caps tracking for labels, loud uppercase is banned. */
+  .text-caps {
+    font-size: var(--text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-variant-caps: all-small-caps;
+  }
+
+  .text-caps-plain {
+    font-size: var(--text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .doc-prose {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.72;
+    max-width: 68ch;
+  }
+
+  .rule-t {
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .rule-b {
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .hairline-double {
+    border-top: 3px double var(--color-seal);
+    border-bottom: 3px double var(--color-seal);
+  }
+
+  .watermark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    font-family: var(--font-sans);
+    font-size: clamp(1.5rem, 6vw, 3.5rem);
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+    opacity: 0.05;
+    transform: rotate(-24deg);
+    user-select: none;
+  }
+
+  .rule-grid {
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 27px,
+        var(--color-rule) 27px,
+        var(--color-rule) 28px
+      );
+  }
+
+  /* Loading: ruled placeholders, slow fade (no shimmer). */
+  .skeleton-rule {
+    background-color: var(--color-rule);
+    opacity: 0.45;
+    animation: skeleton-fade 2200ms ease-in-out infinite;
+  }
+
+  .skeleton-ink {
+    background-color: var(--color-rule-strong);
+    opacity: 0.28;
+    animation: skeleton-fade 2200ms ease-in-out infinite;
+  }
+
+  @keyframes skeleton-fade {
+    0%,
+    100% {
+      opacity: 0.22;
+    }
+    50% {
+      opacity: 0.48;
+    }
+  }
+
+  .content-fade-in {
+    animation: content-fade-in 200ms var(--ease-instrument) both;
+  }
+
+  @keyframes content-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .stagger-item {
+    animation: content-fade-in 200ms var(--ease-instrument) both;
+    animation-delay: calc(min(var(--stagger-index, 0), 7) * 25ms);
+  }
+
+  .rosette-draw [data-rosette-part] {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: rosette-draw 900ms var(--ease-instrument) both;
+  }
+
+  .rosette-draw [data-rosette-part='fill'] {
+    animation-name: rosette-fill;
+  }
+
+  @keyframes rosette-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes rosette-fill {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .content-fade-in,
+  .stagger-item,
+  .rosette-draw [data-rosette-part] {
+    animation: none !important;
+    opacity: 1 !important;
+    stroke-dashoffset: 0 !important;
+  }
+}
