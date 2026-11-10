@@ -92,18 +92,25 @@
   .brand .name strong { font-family: var(--serif); font-weight: 500; font-size: 1.08rem; letter-spacing: -0.01em; }
   .brand .name span { margin-top: 5px; font-size: 0.6rem; letter-spacing: 0.19em; text-transform: uppercase; color: var(--ink-3); }
   .nav { display: flex; align-items: center; gap: 4px; }
-  .nav a {
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-links a {
     display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px;
     color: var(--ink-2); text-decoration: none; font-size: 0.9rem;
     border-bottom: 2px solid transparent;
   }
-  .nav a:hover { color: var(--ink); border-bottom-color: var(--rule-strong); }
-  .nav .github {
-    margin-left: 8px; min-height: 40px; padding: 0 16px;
-    border: 1px solid var(--navy); background: var(--navy); color: var(--sheet);
-    font-weight: 500;
+  .nav-links a:hover { color: var(--ink); border-bottom-color: var(--rule-strong); }
+  .nav-auth { display: flex; align-items: center; gap: 8px; margin-left: 10px; }
+  .nav-auth a {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 40px; padding: 0 16px; border-radius: var(--radius);
+    font-size: 0.9rem; font-weight: 500; text-decoration: none;
+    border: 1px solid transparent; white-space: nowrap;
   }
-  .nav .github:hover { background: var(--navy-hover); border-bottom-color: var(--navy-hover); }
+  .nav-auth .signin { color: var(--ink); border-color: var(--rule-strong); background: var(--sheet); }
+  .nav-auth .signin:hover { background: var(--vellum); border-color: var(--ink); }
+  .nav-auth .create { color: var(--sheet); border-color: var(--navy); background: var(--navy); }
+  .nav-auth .create:hover { background: var(--navy-hover); border-color: var(--navy-hover); }
+  .nav-auth .short { display: none; }
 
   /* -------------------------------- hero ------------------------------- */
   .hero { padding: 78px 0 64px; }
@@ -279,7 +286,9 @@
 
   /* ------------------------------ run local ---------------------------- */
   .run { background: var(--navy); color: var(--sheet); }
-  .run .wrap { padding-top: 64px; padding-bottom: 64px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 30rem); gap: 56px; align-items: center; }
+  .run .wrap { padding-top: 64px; padding-bottom: 64px; display: flex; justify-content: space-between; align-items: center; gap: 40px; flex-wrap: wrap; }
+  .run .cta-copy { max-width: 44rem; }
+  .cta-actions { display: flex; flex-wrap: wrap; gap: 12px; }
   .run .eyebrow { color: #a9c8bf; }
   .run h2 { margin: 14px 0 0; font-family: var(--serif); font-weight: 500; font-size: clamp(1.9rem, 3.2vw, 2.6rem); line-height: 1.1; }
   .run p { margin: 16px 0 0; color: #d7dbe4; font-size: 0.98rem; }
@@ -288,14 +297,6 @@
   .run .btn-primary:hover { background: var(--vellum); }
   .run .btn-ghost { background: transparent; color: var(--sheet); border-color: #5b6a86; }
   .run .btn-ghost:hover { background: #24365a; border-color: #8b9ab5; }
-  pre {
-    margin: 0; padding: 22px 24px; overflow-x: auto;
-    background: #111b2e; border: 1px solid #2c3d5e; border-radius: var(--panel);
-    font-family: var(--mono); font-size: 0.8rem; line-height: 1.75; color: #dfe5ee;
-  }
-  pre .c { color: #8fa0bd; }
-  pre .k { color: #a9c8bf; }
-
   /* ------------------------------- footer ------------------------------ */
   footer.site-footer { border-top: 1px solid var(--rule); background: var(--paper); }
   footer.site-footer .wrap { padding-top: 36px; padding-bottom: 44px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: start; }
@@ -330,13 +331,17 @@
     .trust-grid { grid-template-columns: repeat(2, 1fr); }
     .verify-layout { grid-template-columns: 1fr; }
     .ai-layout { grid-template-columns: 1fr; }
-    .run .wrap { grid-template-columns: 1fr; }
+    .run .wrap { flex-direction: column; align-items: flex-start; }
     .stat-strip .wrap { grid-template-columns: repeat(2, 1fr); }
     .stat:nth-child(3) { border-left: 0; }
     .stat:nth-child(n + 3) { border-top: 1px solid var(--rule); }
   }
   @media (max-width: 700px) {
-    .nav a:not(.github) { display: none; }
+    .nav-links { display: none; }
+    .nav-auth { margin-left: 0; gap: 6px; }
+    .nav-auth a { padding: 0 11px; font-size: 0.84rem; }
+    .nav-auth .long { display: none; }
+    .nav-auth .short { display: inline; }
     .hero { padding: 52px 0 44px; }
     section.block { padding: 56px 0; }
     .shot-grid { grid-template-columns: 1fr; }
@@ -400,12 +405,17 @@
       <span class="name"><strong>AgreementHub</strong><span>The Instrument</span></span>
     </a>
     <nav class="nav" aria-label="Primary">
-      <a href="#product">Product</a>
-      <a href="#screens">Screens</a>
-      <a href="#lifecycle">Lifecycle</a>
-      <a href="#security">Security</a>
-      <a href="#verify">Verify</a>
-      <a class="github" href="https://github.com/Vinc3980/AgreementHub">View source</a>
+      <div class="nav-links">
+        <a href="#product">Product</a>
+        <a href="#screens">Screens</a>
+        <a href="#lifecycle">Lifecycle</a>
+        <a href="#security">Security</a>
+        <a href="#verify">Verify</a>
+      </div>
+      <div class="nav-auth">
+        <a class="signin" href="login/">Sign in</a>
+        <a class="create" href="register/"><span class="long">Create account</span><span class="short">Sign up</span></a>
+      </div>
     </nav>
   </div>
 </header>
@@ -423,8 +433,8 @@
           with a content hash that anyone can check from its Agreement ID.
         </p>
         <div class="actions">
-          <a class="btn btn-primary" href="#screens">Explore the product</a>
-          <a class="btn btn-ghost" href="https://github.com/Vinc3980/AgreementHub">View source on GitHub</a>
+          <a class="btn btn-primary" href="register/">Create account</a>
+          <a class="btn btn-ghost" href="login/">Sign in</a>
         </div>
         <p class="note">
           Signing is bound to the exact content at that moment. Any later change creates a
@@ -766,35 +776,20 @@
     </div>
   </section>
 
-  <section class="run" id="run">
+  <section class="run" id="start">
     <div class="wrap">
-      <div>
-        <p class="caps eyebrow">Open source · self-hostable</p>
-        <h2>Run the full stack in a few minutes.</h2>
+      <div class="cta-copy">
+        <p class="caps eyebrow">Start with a template</p>
+        <h2>Ready to seal your next agreement?</h2>
         <p>
-          The application is a Node.js API (Fastify 5), a PostgreSQL 17 schema, and a
-          Next.js 16 web app. No Docker required; point it at any reachable PostgreSQL.
-          This GitHub Pages site is the public showcase — the live product runs on a
-          Node.js host with a database.
+          Create a workspace, draft from a template, collect approvals and signatures,
+          then publish a verification link anyone can check.
         </p>
-        <div class="actions">
-          <a class="btn btn-primary" href="https://github.com/Vinc3980/AgreementHub">Get the source</a>
-          <a class="btn btn-ghost" href="https://github.com/Vinc3980/AgreementHub/blob/main/docs/SPEC.md">Read the specification</a>
-        </div>
       </div>
-      <pre aria-label="Local setup commands"><span class="c"># 1. install dependencies</span>
-<span class="k">npm</span> install
-
-<span class="c"># 2. configure the database</span>
-<span class="k">Copy-Item</span> .env.example .env
-
-<span class="c"># 3. migrate and seed</span>
-<span class="k">npm</span> run db:migrate
-<span class="k">npm</span> run db:seed
-
-<span class="c"># 4. run API + web</span>
-<span class="k">npm</span> run dev
-<span class="c"># → http://127.0.0.1:3001</span></pre>
+      <div class="cta-actions">
+        <a class="btn btn-primary" href="register/">Create account</a>
+        <a class="btn btn-ghost" href="login/">Sign in</a>
+      </div>
     </div>
   </section>
 </main>
@@ -809,14 +804,15 @@
       </div>
     </div>
     <nav class="footer-links" aria-label="Footer">
-      <a href="https://github.com/Vinc3980/AgreementHub">GitHub</a>
-      <a href="https://github.com/Vinc3980/AgreementHub/blob/main/docs/SPEC.md">Specification</a>
-      <a href="https://github.com/Vinc3980/AgreementHub/blob/main/docs/SECURITY_AUDIT_REPORT.md">Security audit</a>
+      <a href="#product">Product</a>
+      <a href="#screens">Screens</a>
       <a href="#verify">Verify a record</a>
+      <a href="login/">Sign in</a>
+      <a href="register/">Create account</a>
     </nav>
     <div class="footer-note">
       <span>Electronic acceptance, signature, and verification. Not a legal advice service.</span>
-      <span>Static showcase · full stack runs on Node.js + PostgreSQL</span>
+      <span>© 2026 AgreementHub</span>
     </div>
   </div>
 </footer>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Create account · AgreementHub</title>
+<meta name="description" content="Create an AgreementHub account and set up a secure workspace for your agreements." />
+<meta name="theme-color" content="#F3EFE6" />
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/auth.css" />
+</head>
+<body>
+  <header class="auth-header">
+    <div class="auth-wrap">
+      <a class="auth-brand" href="../" aria-label="AgreementHub home">
+        <img src="../assets/icon.svg" alt="" /> AgreementHub
+      </a>
+    </div>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-col">
+      <a class="auth-back" href="../">← Back to overview</a>
+      <div class="auth-card">
+        <p class="caps">The instrument</p>
+        <h1>Create your account</h1>
+        <p class="sub">Set up a secure workspace for your agreements.</p>
+
+        <form class="auth-form" id="auth-form" novalidate data-notice="This public preview is not connected to a live workspace. Account creation is available in the full AgreementHub application.">
+          <div class="field">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required placeholder="Jordan Rivera" />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@company.com" />
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="new-password" required placeholder="••••••••••" />
+            <p class="hint">At least 10 characters, including letters and numbers.</p>
+          </div>
+          <button class="btn btn-full" type="submit">Create account</button>
+        </form>
+
+        <div class="notice" id="notice" role="status" tabindex="-1" hidden></div>
+      </div>
+
+      <p class="auth-below">Already have an account? <a href="../login/">Sign in</a></p>
+    </div>
+  </main>
+
+  <footer class="auth-foot">
+    <div class="auth-wrap">
+      <span>Hash-sealed records · append-only audit trail</span>
+      <a href="../#verify">Public verification</a>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var form = document.getElementById('auth-form');
+      var notice = document.getElementById('notice');
+      var name = document.getElementById('name');
+      var email = document.getElementById('email');
+      var password = document.getElementById('password');
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (!name.value.trim()) { name.reportValidity(); return; }
+        if (!email.value.trim() || !email.checkValidity()) { email.reportValidity(); return; }
+        if (password.value.length < 10 || !/[A-Za-z]/.test(password.value) || !/[0-9]/.test(password.value)) {
+          notice.textContent = 'Password must be at least 10 characters and include letters and numbers.';
+          notice.hidden = false;
+          notice.focus();
+          return;
+        }
+        notice.textContent = form.getAttribute('data-notice');
+        notice.hidden = false;
+        notice.focus();
+      });
+    })();
+  </script>
+</body>
+</html>
